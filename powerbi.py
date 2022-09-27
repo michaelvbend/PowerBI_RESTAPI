@@ -31,17 +31,23 @@ class PowerBIAPI:
         groups = requests.get(url=f'https://api.powerbi.com/v1.0/myorg/groups/{groupId}/datasets', headers={'Authorization': f'Bearer {self.access_token}'})
         return groups.json()
 
-    def getRefreshHistory(self,datasetId):
-        dataset_id = datasetId
-        dataset = requests.get(url=f'https://api.powerbi.com/v1.0/myorg/datasets/{dataset_id}/refreshes', headers={'Authorization': f'Bearer {self.access_token}'})
+    def getRefreshHistory(self):
+        datasets = self.getDatasets()['value']
+        list_of_datasets = [item['id'] for item in datasets]
+        list_of_refreshes = []
+        for dataset in list_of_datasets:
+            try:
+                dataset_id = dataset
+                dataset = requests.get(url=f'https://api.powerbi.com/v1.0/myorg/datasets/{dataset_id}/refreshes', headers={'Authorization': f'Bearer {self.access_token}'})
+                dt = dataset.json()['value']
+                for item in dt:
+                    item.update({"keys": dataset_id})
+                    list_of_refreshes.append(item)
+            except:
+                # Output is known and thats why PASS is allowed
+                pass
+        return list_of_refreshes
 
-        try:
-            dt = dataset.json()['value']
-            for item in dt:
-                item.update({"keys": dataset_id})
-            return dt
-        except:
-            pass
 
 
 
