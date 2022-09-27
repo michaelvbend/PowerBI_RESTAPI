@@ -1,0 +1,7 @@
+## TODO
+1. Verander status Unknown naar Running
+2. Organizeren (Class maken voor Blob-activities)
+3. Update in plaats van full-loads -> DONE
+4. Config parser -> Alle credentials verbergen
+5. Uploaden naar GitHub
+6. If blob already exist = DELETE IT!
