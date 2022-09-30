@@ -24,7 +24,7 @@ def extract_data():
                         password=password, client=client_id,
                         client_secret=client_secret)
 
-    categories = ['datasets', 'refreshes']
+    categories = ['datasets', 'refreshes', 'workspace']
 
     for cat in categories:
         blob = BlobClient.from_connection_string(conn_str=connection_string,
@@ -35,16 +35,14 @@ def extract_data():
             # Skip if blob already exists
             if cat == "datasets" and blob.exists() is False:
                 blob.upload_blob(json.dumps(client.getDatasets()))
+            elif cat == "workspace" and blob.exists() is False:
+                blob.upload_blob(json.dumps(client.getGroups()))
             elif cat == "refreshes" and blob.exists() is False:
                 blob.upload_blob(json.dumps(client.getRefreshHistory()))
+
             print("Succes!")
         except Exception as e:
             raise Exception
-
-
-
-
-
 
 
 

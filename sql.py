@@ -16,14 +16,25 @@ create_staging_dim = """DROP TABLE IF EXISTS [dbo].[DIM_Dataset_stage]
                             [Dataset_Name] [varchar](50) NOT NULL,
                             [Created_date] [date] NOT NULL,
                             [Description] [varchar](100) NULL,
-                            [Dataset_owner] [varchar](30) NOT NULL
+                            [Dataset_owner] [varchar](30) NOT NULL,
+                            [Workspace_ID] varchar(50) NOT NULL
+                        )"""
+
+create_staging_dim_workspace = """DROP TABLE IF EXISTS [dbo].[DIM_Workspace_stage] 
+                         CREATE TABLE [dbo].[DIM_Workspace_stage](
+                            [Workspace_ID] [varchar](50) NOT NULL,
+                            [Workspace_Name] [varchar](50) NOT NULL
                         )"""
 
 create_dim = """delete  FROM [dbo].[DIM_Dataset] WHERE 
-                Dataset_ID in (select Dataset_ID from [dbo].[DIM_Dataset_stage]
+                concat(Dataset_ID,workspace_ID) in (select concat(Dataset_ID,workspace_id) from [dbo].[DIM_Dataset_stage]
                         )"""
+
 create_fact = """delete  FROM [dbo].[FACT_RefreshHistory] WHERE 
                 request_id in (select request_id from [dbo].[FACT_RefreshHistory_stage])
+                         """
+create_dim_workspace = """delete  FROM [dbo].[DIM_Workspace] WHERE 
+                workspace_ID in (select workspace_ID from [dbo].[DIM_Workspace_stage])
                          """
 
 insert_dim = """INSERT INTO DIM_Dataset(
@@ -31,9 +42,16 @@ insert_dim = """INSERT INTO DIM_Dataset(
                     Dataset_Name,
                     Created_date,
                     [Description],
-                    Dataset_owner
+                    Dataset_owner,
+                    Workspace_ID
                     )
-                    select * from DIM_Dataset_stage"""
+                    select * from DIM_Dataset_stage where concat(dataset_id,workspace_ID) not in (select concat(dataset_id,workspace_ID) from DIM_Dataset)"""
+
+insert_dim_workspace = """INSERT INTO DIM_Workspace(
+                    Workspace_ID,
+                    Workspace_Name
+                    )
+                    select * from DIM_Workspace_stage where concat(workspace_ID,workspace_name) not in (select concat(workspace_ID,workspace_name) from DIM_Workspace)"""
 
 insert_fact = """INSERT INTO FACT_RefreshHistory(
                     Dataset_ID,
@@ -58,6 +76,8 @@ insert_fact = """INSERT INTO FACT_RefreshHistory(
 
 drop_stage_fact = """DROP TABLE IF EXISTS [dbo].[FACT_RefreshHistory_stage]"""
 drop_stage_dim = """DROP TABLE IF EXISTS [dbo].[DIM_Dataset_stage] """
+drop_stage_dim_workspace = """DROP TABLE IF EXISTS [dbo].[DIM_Workspace_stage] """
+
 
 create_stage = [create_staging_dim,create_staging_fact]
 create_dims = [create_dim]

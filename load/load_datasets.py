@@ -35,7 +35,7 @@ def delete_blob():
 
 def transform_data():
     fileReader = connect_to_blob()
-    data = pd.read_json(json.dumps(fileReader['value']))
+    data = pd.read_json(json.dumps(fileReader))
 
     df = pd.DataFrame(data)
 
@@ -61,8 +61,8 @@ def load_data():
         for row in df.itertuples():
             cursor.execute('''
                             DELETE FROM DIM_Dataset_stage 
-                            WHERE Dataset_ID 
-                            IN (SELECT Dataset_ID 
+                            WHERE concat(Dataset_ID,Workspace_ID) 
+                            IN (SELECT concat(Dataset_ID,Workspace_ID) 
                                 FROM DIM_Dataset)
                                 
                             INSERT INTO DIM_Dataset_stage 
@@ -70,14 +70,16 @@ def load_data():
                              Dataset_Name,
                              Created_date, 
                              Description, 
-                             Dataset_owner)
-                                VALUES (?,?,?,?,?)
+                             Dataset_owner,
+                             Workspace_ID)
+                                VALUES (?,?,?,?,?,?)
             ''',
                            row.id,
                            row.name,
                            row.createdDate,
                            row.description,
-                           row.configuredBy)
+                           row.configuredBy,
+                           row.keys)
 
         # Load data from Staging to Target Table
         cursor.execute(sql.insert_dim)
